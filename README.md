@@ -51,28 +51,32 @@ Modify the source files using the editor of your choice locally and quickly veri
 
 ### fract-api
 
-Navigate to the `api` directory and run the application.
+Navigate to the `api` directory, install the dependencies, then run the application.
 
     $ cd api
+    $ npm install
     $ nodejs server
 
 ### fract-generator
 
-Navigate to the `generator` directory and run the application.
+Navigate to the `generator` directory, install the dependencies, then run the application.
 
     $ cd generator
+    $ npm install
     $ nodejs server
 
 ### fract-registry
 
-Navigate to the `registry` directory and run the application.
+Navigate to the `registry` directory, install the dependencies, then run the application.
 
     $ cd registry
+    $ npm install
     $ nodejs server
     
 ### fract-store
 
-Navigate to the `store` directory and run the application.
+Navigate to the `store` directory, install the dependencies, then run the application.
 
     $ cd store
+    $ npm install
     $ nodejs server
