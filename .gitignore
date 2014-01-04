@@ -1,3 +1,5 @@
+.vagrant
+
 lib-cov
 *.seed
 *.log
