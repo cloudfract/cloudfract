@@ -7,6 +7,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 	config.vm.box = "saucy64"
 	config.vm.hostname = "vagrant01"
     config.vm.network "private_network", ip: "10.0.10.75"
+    config.vm.synced_folder "../cloudfract/", "/srv/cloudfract"
 
 	config.vm.provider "virtualbox" do |vbx|
 		vbx.customize ["modifyvm", :id, "--memory", "1024"]

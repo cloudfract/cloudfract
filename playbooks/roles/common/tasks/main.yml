@@ -1,0 +1,10 @@
+---
+# file: roles/common/tasks/main.yml
+
+- name: ensure required packages are present
+  apt: pkg={{ item }} update_cache=yes
+  with_items:
+    - vim
+
+- name: ensure that vim is the default editor
+  shell: update-alternatives --set editor /usr/bin/vim.basic

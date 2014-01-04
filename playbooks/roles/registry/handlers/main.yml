@@ -1,0 +1,5 @@
+---
+# file: roles/registry/handlers/main.yml
+
+- name: reboot node
+  shell: reboot

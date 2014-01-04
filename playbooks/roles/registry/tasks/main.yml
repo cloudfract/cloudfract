@@ -1,0 +1,11 @@
+---
+# file: roles/registry/tasks/main.yml
+
+- name: ensure required packages are present
+  apt: pkg={{ item }} update_cache=yes
+  with_items:
+    - couchdb
+    - nodejs
+    - npm
+    - rabbitmq-server
+  notify: reboot node

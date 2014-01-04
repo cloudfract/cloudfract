@@ -1,0 +1,9 @@
+---
+# file: roles/generator/tasks/main.yml
+
+- name: ensure required packages are present
+  apt: pkg={{ item }} update_cache=yes
+  with_items:
+    - mandelbulber
+    - nodejs
+    - npm
