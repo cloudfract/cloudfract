@@ -1,0 +1,16 @@
+---
+- name: setup a node.js node
+  hosts: all
+  gather_facts: no
+  sudo: yes
+
+  tasks:
+    - name: ensure required packages are present
+      apt: pkg={{ item }} update_cache=yes
+      with_items:
+        - couchdb
+        - mandelbulber
+        - nodejs
+        - npm
+        - rabbitmq-server
+        - vim
