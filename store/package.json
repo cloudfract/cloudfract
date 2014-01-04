@@ -1,0 +1,9 @@
+{
+    "name": "fract-store",
+    "description": "Fractal Object Storage Module",
+    "version": "0.0.1",
+    "private": true,
+    "dependencies": {
+        "amqplib": "0.1.x"
+    }
+}

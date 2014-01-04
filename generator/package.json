@@ -1,0 +1,9 @@
+{
+    "name": "fract-generator",
+    "description": "Fractal Generator Module",
+    "version": "0.0.1",
+    "private": true,
+    "dependencies": {
+        "amqplib": "0.1.x"
+    }
+}

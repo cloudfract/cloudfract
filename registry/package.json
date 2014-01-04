@@ -1,0 +1,10 @@
+{
+    "name": "fract-registry",
+    "description": "Fractal Registry Module",
+    "version": "0.0.1",
+    "private": true,
+    "dependencies": {
+        "amqplib": "0.1.x",
+        "nano": "4.2.x"
+    }
+}
