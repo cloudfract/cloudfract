@@ -1,8 +1,8 @@
 ---
 # file: roles/vagrant/tasks/main.yml
 
+- name: ensure that the local key is present for the vagrant user
+  authorized_key: user=vagrant key={{ local_public_key }}
+
 - name: ensure that the virtualbox guest extensions are present
-  get_url: >
-    url=http://download.virtualbox.org/virtualbox/4.3.6/VBoxGuestAdditions_4.3.6.iso
-    dest=/home/vagrant/VBoxGuestAdditions_4.3.6.iso
-    mode=0666
+  get_url: url={{ vbox_guest_extensions_url }} dest={{ vbox_guest_extensions_path }} mode=0666
