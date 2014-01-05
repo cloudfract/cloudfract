@@ -30,7 +30,7 @@ Development for cloudfract is done using Vagrant.
 
 ### Environment Setup
 
-The first step is to configure the vagrant.
+The first step is to configure vagrant.
 
     $ export VAGRANT_CWD=`pwd`/vagrant
     $ vagrant plugin install vagrant-vbguest
@@ -38,6 +38,12 @@ The first step is to configure the vagrant.
 Fire up the vagrant node.
 
     $ vagrant up
+
+Deploy the application dependencies and reload the vagrant node when complete.
+
+    $ cd playbooks
+    $ ansible-playbook site.yml
+    $ vagrant reload
 
 Connect to the vagrant node.
 
