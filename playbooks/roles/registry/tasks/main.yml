@@ -8,4 +8,6 @@
     - nodejs
     - npm
     - rabbitmq-server
-  notify: reboot node
+
+- name: ensure the couchdb configuration file is present
+  copy: src=etc/couchdb/local.ini dest=/etc/couchdb/local.ini mode=0640
