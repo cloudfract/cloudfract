@@ -1,30 +1,30 @@
----
-- name: setup a node.js node
-  hosts: all
+
+- hosts: all
   gather_facts: no
   sudo: yes
+  roles:
+    - role: common
 
-  tasks:
-    - name: ensure required packages are present
-      apt: pkg={{ item }} update_cache=yes
-      with_items:
-        - couchdb
-        - mandelbulber
-        - nodejs
-        - npm
-        - rabbitmq-server
-        - vim
-      notify: poweroff node
+- hosts: api
+  gather_facts: no
+  sudo: yes
+  roles:
+    - role: api
 
-    - name: ensure that vim is the default editor
-      shell: update-alternatives --set editor /usr/bin/vim.basic
- 
-    - name: ensure that the virtualbox guest extensions are present
-      get_url: >
-        url=http://download.virtualbox.org/virtualbox/4.3.6/VBoxGuestAdditions_4.3.6.iso
-        dest=/home/vagrant/VBoxGuestAdditions_4.3.6.iso
-        mode=0666
+- hosts: generator
+  gather_facts: no
+  sudo: yes
+  roles:
+    - role: generator
 
-  handlers:
-    - name: poweroff node
-      shell: poweroff
+- hosts: registry
+  gather_facts: no
+  sudo: yes
+  roles:
+    - role: registry
+
+- hosts: store
+  gather_facts: no
+  sudo: yes
+  roles:
+    - role: store
