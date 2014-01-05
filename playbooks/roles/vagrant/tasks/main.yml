@@ -2,7 +2,23 @@
 # file: roles/vagrant/tasks/main.yml
 
 - name: ensure that the local key is present for the vagrant user
-  authorized_key: user=vagrant key={{ local_public_key }}
+  authorized_key: user=vagrant key="{{ local_public_key }}"
 
-- name: ensure that the virtualbox guest extensions are present
-  get_url: url={{ vbox_guest_extensions_url }} dest={{ vbox_guest_extensions_path }} mode=0666
+- name: ensure that the virtualbox estensions directory is present
+  file: path={{ vbox_guest_extensions_path }} state=directory
+
+- name: ensure the virtualbox guest extensions are present
+  get_url: url="{{ vbox_guest_extensions_url }}" dest="{{ vbox_guest_extensions_path }}/{{ vbox_guest_extensions_filename }}" mode=0666
+
+- name: ensure fstab is present
+  template: src=etc/fstab.j2 dest=/etc/fstab mode=0644
+
+- name: ensure that the mount directory is present
+  file: path={{ vbox_guest_extensions_mount }} state=directory
+
+- name: ensure the virtualbox guest extensions are mounted
+  mount: name={{ vbox_guest_extensions_mount }} src="{{ vbox_guest_extensions_path }}/{{ vbox_guest_extensions_filename }}" fstype=iso9660 opts=ro state=mounted
+
+- name: ensure virtualbox guest extensions are installed
+  shell: DEBIAN_FRONTEND=noninteractive /mnt/vbox/VBoxLinuxAdditions.run executable=/bin/bash creates=/opt/VBoxGuestAdditions-4.3.6
+  notify: poweroff node
