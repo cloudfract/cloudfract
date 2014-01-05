@@ -1,5 +1,0 @@
----
-# file: roles/vagrant/handlers/main.yml
-
-- name: poweroff node
-  shell: poweroff
