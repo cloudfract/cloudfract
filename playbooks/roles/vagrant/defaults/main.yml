@@ -4,4 +4,5 @@
 local_public_key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
 vbox_guest_extensions_filename: "VBoxGuestAdditions_4.3.6.iso"
 vbox_guest_extensions_url: "http://download.virtualbox.org/virtualbox/4.3.6/{{ vbox_guest_extensions_filename }}"
-vbox_guest_extensions_path: "/srv/vbox/{{ vbox_guest_extensions_filename }}"
+vbox_guest_extensions_path: "/srv/vbox"
+vbox_guest_extensions_mount: "/mnt/vbox"
