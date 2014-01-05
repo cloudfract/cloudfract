@@ -8,3 +8,9 @@
 
 - name: ensure that vim is the default editor
   shell: update-alternatives --set editor /usr/bin/vim.basic
+
+- name: enable color prompt
+  lineinfile: dest=/home/{{ ansible_ssh_user }}/.bashrc regexp=^#force_color_prompt=yes line=force_color_prompt=yes backrefs=yes
+
+- name: Add cll alias
+  lineinfile: dest=/home/{{ ansible_ssh_user }}/.bashrc insertafter="^alias l='ls -CF'" line="alias cll='clear;pwd;ls -lAh'"
