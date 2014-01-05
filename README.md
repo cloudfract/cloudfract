@@ -30,9 +30,10 @@ Development for cloudfract is done using Vagrant.
 
 ### Environment Setup
 
-The first step is to configure the vagrant working directory.
+The first step is to configure the vagrant.
 
     $ export VAGRANT_CWD=`pwd`/vagrant
+    $ vagrant plugin install vagrant-vbguest
 
 Fire up the vagrant node.
 
