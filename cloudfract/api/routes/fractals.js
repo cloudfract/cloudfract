@@ -10,7 +10,7 @@ module.exports = function(app) {
         amqp.connect(app.get("amqp_connection")).then(function(conn) {
             return when(conn.createChannel().then(function(ch) {
                 var answer = defer();
-                var corrId = uuid();
+                var corrId = uuid.v4();
 
                 function maybeAnswer(msg) {
                     if (msg.properties.correlationId === corrId) {
@@ -41,7 +41,7 @@ module.exports = function(app) {
         amqp.connect(app.get("amqp_connection")).then(function(conn) {
             return when(conn.createChannel().then(function(ch) {
                 var answer = defer();
-                var corrId = uuid();
+                var corrId = uuid.v4();
 
                 function maybeAnswer(msg) {
                     if (msg.properties.correlationId === corrId) {
@@ -86,7 +86,7 @@ module.exports = function(app) {
             name: req.body.fractal.name,
             notes: req.body.fractal.notes,
             settings: req.body.fractal.settings,
-            id: uuid()
+            id: uuid.v4()
         }
 
         amqp.connect(app.get("amqp_connection")).then(function(conn) {
