@@ -4,7 +4,9 @@
     "version": "0.0.1",
     "private": true,
     "dependencies": {
+        "amqplib": "0.1.x",
         "express": "3.x",
-        "amqplib": "0.1.x"
+        "node-uuid": "1.4.x",
+        "when": "2.7.x"
     }
 }

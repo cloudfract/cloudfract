@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 var LISTEN_PORT = 8080;
 
 var express = require("express");
@@ -5,10 +7,14 @@ var app = express();
 
 app.configure(function () {
     app.set("amqp_connection", "amqp://guest:guest@localhost:5672");
+    app.set("amqp_queue_list", "fractal.list");
+    app.set("amqp_queue_fetch", "fractal.fetch");
     app.set("amqp_queue_save", "fractal.save");
     app.set("amqp_queue_generate", "fractal.generate");
     app.set("amqp_queue_update", "fractal.update");
-    app.set("amqp_queue_remove", "fractal.remove");
+    app.set("amqp_queue_remove", "fractal.remove");    
+    app.set("couchdb_host", "http://localhost:5984");
+    app.set("couchdb_database", "fractals");
 
     app.use(express.logger("dev")); /* default, short, tiny, dev */
     app.use(express.json());

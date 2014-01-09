@@ -1,16 +1,70 @@
 var amqp = require('amqplib'),
-    crypto = require('crypto')
+    uuid = require("node-uuid"),
+    when = require("when"),
+    defer = when.defer
 ;
 
 module.exports = function(app) {
     // List fractals
     app.get("/fractals", function(req, res) {
-        res.send([{name:'fractal1'}, {name:'fractal2'}, {name:'fractal3'}]);
+        amqp.connect(app.get("amqp_connection")).then(function(conn) {
+            return when(conn.createChannel().then(function(ch) {
+                var answer = defer();
+                var corrId = uuid();
+
+                function maybeAnswer(msg) {
+                    if (msg.properties.correlationId === corrId) {
+                        answer.resolve(msg.content.toString());
+                    }
+                }
+
+                var ok = ch.assertQueue('', {exclusive: true}).then(function(qok) { return qok.queue; });
+
+                ok = ok.then(function(queue) {
+                    return ch.consume(queue, maybeAnswer, {noAck: true}).then(function() { return queue; });
+                });
+
+                ok = ok.then(function(queue) {
+                    ch.sendToQueue(app.get("amqp_queue_list"), new Buffer("list"), { correlationId: corrId, replyTo: queue });
+                    return answer.promise;
+                });
+
+                return ok.then(function(message) {
+                    return res.send(JSON.parse(message));
+                });
+            })).ensure(function() { conn.close(); });
+        }).then(null, console.warn);
     });
 
     // Show fractal
     app.get("/fractals/:id", function(req, res) {
-        res.send({ id: req.params.id, name: "The Name", notes: "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum." });
+        amqp.connect(app.get("amqp_connection")).then(function(conn) {
+            return when(conn.createChannel().then(function(ch) {
+                var answer = defer();
+                var corrId = uuid();
+
+                function maybeAnswer(msg) {
+                    if (msg.properties.correlationId === corrId) {
+                        answer.resolve(msg.content.toString());
+                    }
+                }
+
+                var ok = ch.assertQueue('', {exclusive: true}).then(function(qok) { return qok.queue; });
+
+                ok = ok.then(function(queue) {
+                    return ch.consume(queue, maybeAnswer, {noAck: true}).then(function() { return queue; });
+                });
+
+                ok = ok.then(function(queue) {
+                    ch.sendToQueue(app.get("amqp_queue_fetch"), new Buffer(req.params.id), { correlationId: corrId, replyTo: queue });
+                    return answer.promise;
+                });
+
+                return ok.then(function(message) {
+                    return res.send(JSON.parse(message));
+                });
+            })).ensure(function() { conn.close(); });
+        }).then(null, console.warn);
     });
 
     // Create fractal
@@ -27,11 +81,12 @@ module.exports = function(app) {
         var fractal = {
             type: "default",
             created: new Date(),
-            status: "saving",
+            state: "saving",
+            status: "queued for fractal generation",
             name: req.body.fractal.name,
             notes: req.body.fractal.notes,
             settings: req.body.fractal.settings,
-            id: crypto.createHash('md5').update(fractal.type + ":" + req.body.fractal.settings).digest("hex")
+            id: uuid()
         }
 
         amqp.connect(app.get("amqp_connection")).then(function(conn) {
