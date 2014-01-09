@@ -29,15 +29,15 @@ function on_list_message(channel, message) {
 
     var db = couchdb.use(couchdb_database);
     db.view('fractal_design', 'fractal_list', function(err, body) {
-        if (err) {
+        var response;
+        if (!err) {
+            var fractal_list = body.rows.map(function(row) { return row.value });
+            response = new Buffer(JSON.stringify({ fractals: fractal_list, total: body.total_rows, offset: body.offset }));
+        } else {
             console.warn("Unable to retrieve fractal list. %s", err);
-            return res.send(500, { error: err });
+            response = new Buffer(JSON.stringify({ error: err }));
         }
-
-        var fractal_list = body.rows.map(function(row) { return row.value });
-        var response = { fractals: fractal_list, total: body.total_rows, offset: body.offset };
-
-        channel.sendToQueue(message.properties.replyTo, new Buffer(JSON.stringify(response)), { correlationId: message.properties.correlationId });
+        channel.sendToQueue(message.properties.replyTo, response, { correlationId: message.properties.correlationId });
     });
 
     return message;
@@ -52,11 +52,12 @@ function on_fetch_message(channel, message) {
 
     var db = couchdb.use(couchdb_database);
     db.get(message.content, function(err, body) {
+        var response = new Buffer(JSON.stringify({ fractal: body }));
         if (err) {
             console.warn("Unable to retrieve document. %s", err);
-            return res.send(500, { error: err });
+            response = new Buffer(JSON.stringify({ error: err }));
         }
-        channel.sendToQueue(message.properties.replyTo, new Buffer(JSON.stringify({ fractal: body })), { correlationId: message.properties.correlationId });
+        channel.sendToQueue(message.properties.replyTo, response, { correlationId: message.properties.correlationId });
     });
 
     return message;
