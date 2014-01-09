@@ -1,76 +1,113 @@
+#!/usr/bin/env node
+
 var amqp = require('amqplib'),
     amqp_connection = "amqp://guest:guest@localhost:5672",
     amqp_queue_generate = "fractal.generate",
     amqp_queue_update = "fractal.update",
-    spawn = require('child_process').spawn
+    status_update_interval = 5,
+    spawn = require('child_process').spawn,
+    btoa = require('btoa'),
+    fs = require('fs')
 ;
 
-// Execute a shell command
-function execute(command, callback) {
-    spawn(command, function(error, stdout, stderr){ callback(stdout); });
-};
+// Post a status message
+function publish_status_update(fractal) {    
+    amqp.connect(amqp_connection).then(function(conn) {
+        var ok = conn.createChannel().then(function(ch) {
+            ch.assertQueue(amqp_queue_update);
+            ch.sendToQueue(amqp_queue_update, new Buffer(JSON.stringify(fractal)));
+        });
+        return ok;
+    }).then(null, console.warn);
+}
 
-// Process fractal generate messages
-function generate_fractal(message) {
+// Process fractal generate messages from bus
+function on_generate_message(message) {
     if (!message) {
-        log.warn("Unable to parse message");
+        log.warn("Unable to parse generate message");
         return false;
     }
 
     var fractal = JSON.parse(message.content);
-    console.log(JSON.stringify(fractal));
-
-    var fractal_image = {
-        frame_status: "",
-        frame_progress: "0%",
-        frame_remaining: "0h0m0s",
-        frame_elapsed: "0h0m0s",
-        frame_ips: "0",
-        ssao_status: "",
-        ssao_progress:  "0%",
-    };
+    console.log("Generate Fractal: " + JSON.stringify(fractal));
 
     var cmd = spawn("/usr/bin/mandelbulber", ["-nogui", "/usr/share/mandelbulber/examples/" + fractal.settings + ".fract"]),
         cmd_out = new Array(), cmd_err = new Array()
     ;
 
+    fractal.state = "generating";
+    fractal.status = "generating fractal image";
+
+    var interval_id = setInterval(function() {
+            publish_status_update(fractal);
+        }, status_update_interval * 1000);
+
     cmd.stdout.on("data", function (data) {
+        //console.log('stderr: ' + data);
+
         var chunk = new String(data);
         cmd_out.push(chunk);
 
-        var line = chunk.trim();
-        if (line.indexOf("Done") == 0) {
-            fractal_image.frame_status = line;
+        var lines = chunk.split('\n');
+        lines.forEach(function(entry) {
+            var line = entry.trim();
 
-            var items = line.split(',');            
-            fractal_image.frame_progress = items[0].substr(5);
-        }
+            if (line.indexOf("commandline: settings file:") == 0) {
+                fractal.settings_file = line.substr(28);
+            }
 
-        if (line.indexOf("Rendering Screen Space Ambient Occlusion. Done") == 0) {
-            fractal_image.ssao_status = line;
-            fractal_image.ssao_progress = line.substr(47, line.indexOf("%") - 46);
-        }
-        console.log(JSON.stringify(fractal_image));
+            if (line.indexOf("Default data directory:") == 0) {
+                fractal.data_directory = line.substr(24);
+            }
+
+            if (line.indexOf("Done") == 0) {
+                fractal.status = "rendering frames";
+
+                var items = line.split(',');            
+                fractal.frame_progress = items[0].substr(5);
+                fractal.frame_remaining = items[1].substr(9);
+                fractal.frame_elapsed = items[2].substr(11);
+                fractal.frame_ips = items[3].substr(11);
+            }
+
+            if (line.indexOf("Rendering Screen Space Ambient Occlusion. Done") == 0) {
+                fractal.state = "rendering";
+                fractal.status = "rendering screen space ambient occlusion";
+                fractal.ssao_progress = line.substr(47, line.indexOf("%") - 46);
+            }
+
+            if (line.indexOf("Image saved:") == 0) {
+                fractal.state = "generated";
+                fractal.status = "rendering complete";
+                fractal.image_location = line.substr(13);
+            }
+        });
     });
 
     cmd.stderr.on("data", function (data) {
-        cmd_err.push(data);
         //console.log('stderr: ' + data);
+        cmd_err.push(data);
     });
 
     cmd.on("close", function (code) {
         console.log("Return Code: " + code);
 
-        fractal_image.stdout = cmd_out.join('\n');
-        fractal_image.stderr = cmd_err.join('\n');
+        fractal.stdout = cmd_out.join('\n');
+        fractal.stderr = cmd_err.join('\n');
 
-        if (fractal_image.stdout && fractal_image.stdout.trim().length > 0) {
-            console.log("Output:\n" + fractal_image.stdout);
-        }
+        //console.log(JSON.stringify(generation_status));
 
-        if (fractal_image.stderr && fractal_image.stderr.trim().length > 0) {
-            console.log("Error:\n" + fractal_image.stderr);
-        }
+        fractal.status = "saving image data";
+        fractal.image = {
+            content_type: 'image/jpeg',
+            data: btoa(fs.readFileSync(fractal.data_directory + "/" + fractal.image_location))
+        };
+
+        fractal.state = "active";
+        fractal.status = "";
+
+        clearInterval(interval_id);
+        publish_status_update(fractal);
     });
 
     return message;
@@ -87,11 +124,12 @@ function consumeQueue(channel, queue, callback) {
 
 // Handle processing once the channel has been created
 function onChannelCreated(channel) {
-    consumeQueue(channel, amqp_queue_generate, generate_fractal);
+    consumeQueue(channel, amqp_queue_generate, on_generate_message);
 }
 
 // Handle processing once the connection is established
 function onConnected(connection) {
+    process.once('SIGINT', function() { connection.close(); });
     return connection.createChannel().then(onChannelCreated);
 }
 
