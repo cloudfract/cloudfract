@@ -28,6 +28,7 @@ function on_list_message(channel, message) {
     }
 
     var db = couchdb.use(couchdb_database);
+
     db.view('fractal_design', 'fractal_list', function(err, body) {
         var response;
         if (!err) {
@@ -51,6 +52,7 @@ function on_fetch_message(channel, message) {
     }
 
     var db = couchdb.use(couchdb_database);
+
     db.get(message.content, function(err, body) {
         var response = new Buffer(JSON.stringify({ fractal: body }));
         if (err) {
@@ -70,10 +72,10 @@ function on_save_message(channel, message) {
         return false;
     }
 
-    var fractal = JSON.parse(message.content);
-    console.log("Save Fractal: " + JSON.stringify(fractal));
+    var fractal = JSON.parse(message.content),
+        db = couchdb.use(couchdb_database)
+    ;
 
-    var db = couchdb.use(couchdb_database);
     db.get(fractal.id, function(err, body) {
         if (!err) {
             message.content = JSON.stringify(body);
@@ -84,7 +86,6 @@ function on_save_message(channel, message) {
                     console.warn("Unable to save document. " + err);
                 } else {
                     message.content = JSON.stringify(body);
-                    console.log("Created document: " + message.content);
                 }
             });
         }
@@ -94,22 +95,22 @@ function on_save_message(channel, message) {
 }
 
 // Process fractal update messages
-function on_update_message(channel, message) {    
+function on_update_message(channel, message) {
     if (!message) {
         log.warn("Unable to parse update fractal message");
         return false;
     }
 
-    var fractal = JSON.parse(message.content);
-    console.log("Update Fractal: " + JSON.stringify(fractal));
+    var fractal = JSON.parse(message.content),
+        db = couchdb.use(couchdb_database)
+    ;
 
-    var db = couchdb.use(couchdb_database);
     db.get(fractal.id, function(err, body) {
         if (err) {
             console.warn("Unable to retrieve document. " + err);
         } else {
             doc = body;
-            
+
             for (var property in fractal) {
                 doc[property] = fractal[property];
             }
@@ -121,7 +122,6 @@ function on_update_message(channel, message) {
                     console.warn("Unable to update document: " + err);
                 } else {
                     message.content = JSON.stringify(body);
-                    console.log("Updated document: " + message.content);
                 }
             });
         }
