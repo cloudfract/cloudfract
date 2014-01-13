@@ -1,0 +1,80 @@
+html,
+body {
+    padding-top: 35px;
+    height: 100%;
+}
+
+a,
+.navbar-default .navbar-brand {
+	color: #2879D0;
+}
+
+a:hover,
+.navbar-default .navbar-brand:hover {
+ 	color: #9DDCFF;
+ }
+
+.ajax-loader {
+	background: url("../img/ajax-loader.gif") center no-repeat;
+    min-height: 50px;
+    min-width: 50px;
+}
+
+.copyright {
+	padding-top: 5px;
+}
+
+.fractal-show-dialog {
+	min-width: 60%;
+}
+
+#content {
+	min-height: 100%;
+	height: auto;
+	/* Negative indent footer by its height */
+	margin: 0 auto -30px;
+	/* Pad bottom by footer height */
+	padding: 0 0 30px;
+}
+
+#footer {
+	width: 100%;
+  	height: 30px;
+  	background-color: #f8f8f8;
+	border-top: 1px solid #e7e7e7;
+
+	position:fixed;
+	bottom:0;
+}
+
+.fractal-list-item {
+
+}
+
+.fractal-link:hover {
+	text-decoration: none;
+}
+
+.fractal-thumbnail {
+	min-height: 225px;
+	vertical-align: middle;
+	line-height: 220px;
+}
+
+.fractal-modal-header {
+	background-color: #428BCA;
+	color: #FFF;
+}
+
+.fractal-modal-header button {
+	color: #FFF;
+}
+
+.fractal-modal-header button:hover {
+	color: #FFF;
+}
+
+.fractal-image {
+	vertical-align: middle;
+	line-height: 460px;
+}
