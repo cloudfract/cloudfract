@@ -11,7 +11,7 @@ var amqp = require('amqplib'),
 ;
 
 // Post a status message
-function publish_status_update(fractal) {    
+function publish_status_update(fractal) {
     amqp.connect(amqp_connection).then(function(conn) {
         var ok = conn.createChannel().then(function(ch) {
             ch.assertQueue(amqp_queue_update);
@@ -28,10 +28,8 @@ function on_generate_message(message) {
         return false;
     }
 
-    var fractal = JSON.parse(message.content);
-    console.log("Generate Fractal: " + JSON.stringify(fractal));
-
-    var cmd = spawn("/usr/bin/mandelbulber", ["-nogui", "/usr/share/mandelbulber/examples/" + fractal.settings + ".fract"]),
+    var fractal = JSON.parse(message.content),
+        cmd = spawn("/usr/bin/mandelbulber", ["-nogui", "/usr/share/mandelbulber/examples/" + fractal.settings + ".fract"]),
         cmd_out = new Array(), cmd_err = new Array()
     ;
 
@@ -43,8 +41,6 @@ function on_generate_message(message) {
         }, status_update_interval * 1000);
 
     cmd.stdout.on("data", function (data) {
-        //console.log('stderr: ' + data);
-
         var chunk = new String(data);
         cmd_out.push(chunk);
 
@@ -63,39 +59,41 @@ function on_generate_message(message) {
             if (line.indexOf("Done") == 0) {
                 fractal.status = "rendering frames";
 
-                var items = line.split(',');            
-                fractal.frame_progress = items[0].substr(5);
+                var items = line.split(',');
+                fractal.frame_progress = items[0].substr(5).replace('%', '');
                 fractal.frame_remaining = items[1].substr(9);
                 fractal.frame_elapsed = items[2].substr(11);
                 fractal.frame_ips = items[3].substr(11);
+                fractal.overall_progress = (parseInt(fractal.frame_progress) / 200) * 100;
             }
 
             if (line.indexOf("Rendering Screen Space Ambient Occlusion. Done") == 0) {
                 fractal.state = "rendering";
                 fractal.status = "rendering screen space ambient occlusion";
-                fractal.ssao_progress = line.substr(47, line.indexOf("%") - 46);
+                fractal.ssao_progress = line.substr(47, line.indexOf("%") - 47);
+                fractal.overall_progress = ((parseInt(fractal.frame_progress) + parseInt(fractal.ssao_progress)) / 200) * 100;
             }
 
             if (line.indexOf("Image saved:") == 0) {
+                fractal.frame_progress = 100;
+                fractal.ssao_progress = 100;
+                fractal.overall_progress = 100;
                 fractal.state = "generated";
                 fractal.status = "rendering complete";
                 fractal.image_location = line.substr(13);
             }
         });
+
+        //console.log("Fractal: " + JSON.stringify(fractal));
     });
 
     cmd.stderr.on("data", function (data) {
-        //console.log('stderr: ' + data);
         cmd_err.push(data);
     });
 
     cmd.on("close", function (code) {
-        console.log("Return Code: " + code);
-
         fractal.stdout = cmd_out.join('\n');
         fractal.stderr = cmd_err.join('\n');
-
-        //console.log(JSON.stringify(generation_status));
 
         fractal.status = "saving image data";
         fractal.image = {
