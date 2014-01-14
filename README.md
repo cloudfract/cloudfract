@@ -1,28 +1,40 @@
-# cloudfract
+# CloudFract
 
-A fractal generating system built for the cloud.
+A [fractal](https://www.google.com/search?q=fractal&tbm=isch) generating system built for the cloud.
 
 # Overview
 
-The project is intended to demonstrate the characteristics of a modern cloud-based application.
+The project was initially conceived as a fun way to demonstrate the characteristics of a modern cloud-based application. The system consists of loosely coupled, stateless components that interact through a message-oriented middleware.
 
 # Components
 
-## API Service (fract-api)
+The components for the system are written in JavaScript, utilizing Node.js as the primary back-end technology.
 
-Provides public-facing client interface for the system.
+## API Service
 
-## Fractal Generation Service (fract-generator)
+fract-api
 
-Generates fractal images.
+Provides a RESTful client interface into the system.
 
-## Fractal Registry Service (fract-registry)
+## Fractal Generation Service
 
-Manages fractal metadata.
+fract-generator
 
-## Fractal Object Storage Service  (fract-store)
+This component generates fractal images upon request. The current implementation uses [Mandelbulber](http://www.mandelbulber.com/) to generate the fractal images. The goal is to create additional generator worker node types that can generate fractals from similar utilities.
 
-Stores fractal images in the backend object store.
+## Registry Service
+
+fract-registry
+
+This component provides an abstraction layer to the back-end data store that houses the fractal metadata. The current implementation uses [CouchDB](http://couchdb.apache.org/) to store metadata. The goal is to create additional registry worker node types that can manage meta-data using alternate storage technologies.
+
+## Object Storage Service
+
+fract-store
+
+This component provides an abstraction layer to the back-end object store that houses the fractal image data. The current implementation uses [Swift](https://wiki.openstack.org/wiki/Swift) to store image data. The goal is to create additional storage worker node types that can manage image data using alternate storage technologies.
+
+Note: This component is not implemented yet. Currently, the fract-generator component is persisting the image data through the registry service.
 
 # Development
 
@@ -79,7 +91,7 @@ Navigate to the `registry` directory, install the dependencies, then run the app
     $ cd registry
     $ npm install
     $ nodejs server
-    
+
 ### fract-store
 
 Navigate to the `store` directory, install the dependencies, then run the application.
